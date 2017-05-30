@@ -14,14 +14,14 @@ var gulp = require('gulp'),
   merge = require('merge-stream'),
   plumber = require('gulp-plumber');
 
-gulp.task('cleanCSS', function() {
+gulp.task('cleanCSS', function () {
   return del(['build/css']);
 });
-gulp.task('cleanJS', function() {
+gulp.task('cleanJS', function () {
   return del(['build/js']);
 });
 
-gulp.task('csslint', function() {
+gulp.task('csslint', function () {
   gulp.src('src/*.css')
     .pipe(csslint({
       'adjoining-classes': false,
@@ -33,12 +33,12 @@ gulp.task('csslint', function() {
     .pipe(csslint.formatter());
 });
 
-gulp.task('css', ['csslint', 'cleanCSS'], function() {
+gulp.task('css', ['csslint', 'cleanCSS'], function () {
   return gulp.src('src/*.css')
-    .pipe(sourcemaps.init())
+    // .pipe(sourcemaps.init())
     .pipe(cleanCSS())
-    .pipe(rename('orgchart.min.css'))
-    .pipe(sourcemaps.write())
+    // .pipe(rename('orgchart.min.css'))
+    // .pipe(sourcemaps.write())
     .pipe(gulp.dest('build/css'))
     .pipe(gulp.dest('demo/css'));
 });
@@ -52,13 +52,13 @@ gulp.task('eslint', function () {
 
 gulp.task('js', ['eslint', 'cleanJS'], function () {
   return gulp.src(['src/*.js'])
-    .pipe(sourcemaps.init())
+    // .pipe(sourcemaps.init())
     .pipe(babel(
       {presets: ['es2015']}
     ))
-    .pipe(uglify())
-    .pipe(rename('orgchart.min.js'))
-    .pipe(sourcemaps.write())
+    // .pipe(uglify())
+    // .pipe(rename('orgchart.min.js'))
+    // .pipe(sourcemaps.write())
     .pipe(gulp.dest('build/js'))
     .pipe(gulp.dest('demo/js'));
 });
@@ -68,7 +68,7 @@ gulp.task('watch', function () {
   gulp.watch('src/*.css', ['css']);
 });
 
-gulp.task('copyVendorAssets', function() {
+gulp.task('copyVendorAssets', function () {
   var fontawesomeCSS = gulp.src('node_modules/font-awesome/css/font-awesome.min.css')
     .pipe(gulp.dest('demo/css/vendor'));
 
@@ -84,7 +84,7 @@ gulp.task('copyVendorAssets', function() {
 gulp.task('build', ['css', 'js', 'watch']);
 
 gulp.task('webpack', ['build'], function () {
-  webpack(require('./webpack.config.js'), function(err, stats) {
+  webpack(require('./webpack.config.js'), function (err, stats) {
     if (err) {
       throw new gutil.PluginError('webpack', err);
     }
@@ -105,7 +105,7 @@ gulp.task('serve', ['copyVendorAssets', 'webpack'], function () {
 
   gulp.watch('demo/js/*').on('change', browserSync.reload);
 
-  gulp.watch(['demo/**/*.js', '!demo/js/*', '!demo/js/vendor/*', '!demo/**/bundle*.js']).on('change', function(file) {
+  gulp.watch(['demo/**/*.js', '!demo/js/*', '!demo/js/vendor/*', '!demo/**/bundle*.js']).on('change', function (file) {
     webpack({
       entry: file.path,
       output: {
@@ -123,7 +123,7 @@ gulp.task('serve', ['copyVendorAssets', 'webpack'], function () {
           }
         ]
       }
-    }, function(err, stats) {
+    }, function (err, stats) {
       if (err) {
         throw new gutil.PluginError('webpack', err);
       }
