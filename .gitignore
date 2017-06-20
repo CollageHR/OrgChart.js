@@ -14,3 +14,5 @@ demo/css/vendor
 # bundle files after webpack
 bundle*.js
 bundle*.js.map
+
+.DS_Store

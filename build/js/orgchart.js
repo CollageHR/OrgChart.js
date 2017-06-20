@@ -59,7 +59,7 @@ var OrgChart = function () {
     chart.setAttribute('class', 'orgchart' + (opts.chartClass !== '' ? ' ' + opts.chartClass : '') + (opts.direction !== 't2b' ? ' ' + opts.direction : ''));
     if ((typeof data === 'undefined' ? 'undefined' : _typeof(data)) === 'object') {
       // local json datasource
-      this.buildHierarchy(chart, opts.ajaxURL ? data : this._attachRel(data, '00'), 0);
+      this.buildHierarchy(chart, opts.ajaxURL ? data : this._attachRel(data, '00'), 0).then(opts.renderCompleted);
     } else if (typeof data === 'string' && data.startsWith('#')) {
       // ul datasource
       this.buildHierarchy(chart, this._buildJsonDS(document.querySelector(data).children[0]), 0);
@@ -1711,6 +1711,7 @@ var OrgChart = function () {
       // Construct the node
       var that = this,
           opts = this.options,
+          promises = [],
           nodeWrapper = void 0,
           childNodes = nodeData.children,
           isVerticalNode = opts.verticalDepth && level + 1 >= opts.verticalDepth;
@@ -1721,7 +1722,8 @@ var OrgChart = function () {
         if (!isVerticalNode) {
           appendTo.appendChild(nodeWrapper);
         }
-        this._createNode(nodeData, level).then(function (nodeDiv) {
+
+        promises.push(this._createNode(nodeData, level).then(function (nodeDiv) {
           if (isVerticalNode) {
             nodeWrapper.insertBefore(nodeDiv, nodeWrapper.firstChild);
           } else {
@@ -1736,7 +1738,7 @@ var OrgChart = function () {
           }
         }).catch(function (err) {
           console.error('Failed to creat node', err);
-        });
+        }));
       }
       // Construct the inferior nodes and connectiong lines
       if (childNodes) {
@@ -1803,9 +1805,10 @@ var OrgChart = function () {
             nodeCell.setAttribute('colspan', 2);
           }
           nodeLayer.appendChild(nodeCell);
-          that.buildHierarchy(nodeCell, child, level + 1, callback);
+          promises.push(that.buildHierarchy(nodeCell, child, level + 1, callback));
         });
       }
+      return Promise.all(promises);
     }
   }, {
     key: '_clickChart',

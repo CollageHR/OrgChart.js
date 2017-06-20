@@ -38,7 +38,7 @@ export default class OrgChart {
     chart.setAttribute('class', 'orgchart' + (opts.chartClass !== '' ? ' ' + opts.chartClass : '') +
       (opts.direction !== 't2b' ? ' ' + opts.direction : ''));
     if (typeof data === 'object') { // local json datasource
-      this.buildHierarchy(chart, opts.ajaxURL ? data : this._attachRel(data, '00'), 0);
+      this.buildHierarchy(chart, opts.ajaxURL ? data : this._attachRel(data, '00'), 0).then(opts.renderCompleted);
     } else if (typeof data === 'string' && data.startsWith('#')) { // ul datasource
       this.buildHierarchy(chart, this._buildJsonDS(document.querySelector(data).children[0]), 0);
     } else { // ajax datasource
@@ -1430,6 +1430,7 @@ export default class OrgChart {
     // Construct the node
     let that = this,
       opts = this.options,
+      promises = [],
       nodeWrapper,
       childNodes = nodeData.children,
       isVerticalNode = opts.verticalDepth && (level + 1) >= opts.verticalDepth;
@@ -1439,7 +1440,8 @@ export default class OrgChart {
       if (!isVerticalNode) {
         appendTo.appendChild(nodeWrapper);
       }
-      this._createNode(nodeData, level)
+
+      promises.push(this._createNode(nodeData, level)
       .then(function (nodeDiv) {
         if (isVerticalNode) {
           nodeWrapper.insertBefore(nodeDiv, nodeWrapper.firstChild);
@@ -1459,7 +1461,7 @@ export default class OrgChart {
       })
       .catch(function (err) {
         console.error('Failed to creat node', err);
-      });
+      }));
     }
     // Construct the inferior nodes and connectiong lines
     if (childNodes) {
@@ -1534,9 +1536,10 @@ export default class OrgChart {
           nodeCell.setAttribute('colspan', 2);
         }
         nodeLayer.appendChild(nodeCell);
-        that.buildHierarchy(nodeCell, child, level + 1, callback);
+        promises.push(that.buildHierarchy(nodeCell, child, level + 1, callback));
       });
     }
+    return Promise.all(promises);
   }
   _clickChart(event) {
     let closestNode = this._closest(event.target, function (el) {
